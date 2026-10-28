@@ -1,0 +1,17 @@
+# Settings and run state
+config.env
+state.json
+run.lock
+task_results.json
+
+# Run outputs
+logs/
+snapshots/
+drafts/
+summaries/
+.summarizer-cwd/
+publish_repo/
+
+# Caches
+__pycache__/
+.ruff_cache/

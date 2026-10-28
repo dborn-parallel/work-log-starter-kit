@@ -1,0 +1,17 @@
+[Unit]
+Description=Write the last work log run of the week, with the week summary
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=2h
+StartLimitBurst=4
+
+[Service]
+Type=oneshot
+# Replace <WORK_LOG_DIR_UNDER_HOME> with the folder of run.sh, relative to your home folder.
+ExecStart=%h/<WORK_LOG_DIR_UNDER_HOME>/run.sh --weekly
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=WORKLOG_LOG_TO_FILE=1
+UnsetEnvironment=ANTHROPIC_API_KEY
+Nice=10
+Restart=on-failure
+RestartSec=15min

@@ -1,0 +1,15 @@
+[Unit]
+Description=Write the work log runs before the page publishes
+
+[Timer]
+# Example times. Use the times that the user chose. Start each run about 15 min before the cloud
+# publisher fires. A run takes 5 to 15 min.
+OnCalendar=Mon..Fri 10:15
+OnCalendar=Mon..Fri 12:15
+OnCalendar=Mon..Thu 16:15
+# Run a missed slot at once after the laptop wakes.
+Persistent=true
+RandomizedDelaySec=2m
+
+[Install]
+WantedBy=timers.target

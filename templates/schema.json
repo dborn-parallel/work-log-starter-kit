@@ -1,0 +1,530 @@
+{
+ "$comment": "One summary run as the summarizer writes it. run.sh adds `facts` from build_facts.py. validate.py implements the subset of JSON Schema used here.",
+ "type": "object",
+ "additionalProperties": false,
+ "required": [
+  "run_id",
+  "window_start",
+  "window_end",
+  "topics",
+  "asks",
+  "notes",
+  "figures",
+  "source_errors",
+  "ci_advice",
+  "jira",
+  "tasks"
+ ],
+ "properties": {
+  "run_id": {
+   "type": "string",
+   "pattern": "^run-\\d{8}-\\d{4}(\\d{2})?$"
+  },
+  "window_start": {
+   "type": "string",
+   "format": "date-time"
+  },
+  "window_end": {
+   "type": "string",
+   "format": "date-time"
+  },
+  "topics": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "name",
+     "status",
+     "summary",
+     "branches",
+     "sessions",
+     "prs",
+     "items"
+    ],
+    "properties": {
+     "name": {
+      "type": "string",
+      "maxLength": 40
+     },
+     "status": {
+      "enum": [
+       "done",
+       "moving",
+       "waiting",
+       "blocked"
+      ]
+     },
+     "summary": {
+      "type": "string",
+      "maxLength": 140
+     },
+     "branches": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "maxLength": 120
+      }
+     },
+     "sessions": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "maxLength": 60
+      }
+     },
+     "prs": {
+      "type": "array",
+      "items": {
+       "type": "integer"
+      }
+     },
+     "items": {
+      "type": "array",
+      "items": {
+       "$ref": "#/$defs/line"
+      }
+     }
+    }
+   }
+  },
+  "asks": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "source",
+     "text"
+    ],
+    "properties": {
+     "source": {
+      "enum": [
+       "jira",
+       "confluence",
+       "slack",
+       "claude"
+      ]
+     },
+     "text": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "since": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "link": {
+      "$ref": "#/$defs/link"
+     }
+    }
+   }
+  },
+  "notes": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "source",
+     "kind",
+     "text"
+    ],
+    "properties": {
+     "source": {
+      "enum": [
+       "jira",
+       "confluence",
+       "slack",
+       "claude"
+      ]
+     },
+     "kind": {
+      "enum": [
+       "done",
+       "info"
+      ]
+     },
+     "text": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "link": {
+      "$ref": "#/$defs/link"
+     }
+    }
+   }
+  },
+  "figures": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "kind",
+     "title",
+     "caption"
+    ],
+    "properties": {
+     "kind": {
+      "enum": [
+       "bars",
+       "progress",
+       "tree"
+      ]
+     },
+     "title": {
+      "type": "string",
+      "maxLength": 60
+     },
+     "caption": {
+      "type": "string",
+      "maxLength": 140
+     },
+     "unit": {
+      "type": "string",
+      "maxLength": 20
+     },
+     "rows": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "value"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "maxLength": 60
+        },
+        "value": {
+         "type": "number"
+        },
+        "note": {
+         "type": "string",
+         "maxLength": 60
+        }
+       }
+      }
+     },
+     "segments": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "label",
+        "state"
+       ],
+       "properties": {
+        "label": {
+         "type": "string",
+         "maxLength": 60
+        },
+        "state": {
+         "$ref": "#/$defs/state"
+        }
+       }
+      }
+     },
+     "nodes": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "additionalProperties": false,
+       "required": [
+        "id",
+        "label",
+        "state"
+       ],
+       "properties": {
+        "id": {
+         "type": "string",
+         "maxLength": 60
+        },
+        "label": {
+         "type": "string",
+         "maxLength": 60
+        },
+        "parent": {
+         "type": "string",
+         "maxLength": 60
+        },
+        "state": {
+         "$ref": "#/$defs/state"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "source_errors": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "string",
+    "maxLength": 300
+   }
+  },
+  "facts": {
+   "type": "object"
+  },
+  "ci_advice": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "pr",
+     "check",
+     "cause",
+     "fix"
+    ],
+    "properties": {
+     "pr": {
+      "type": "integer"
+     },
+     "check": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "cause": {
+      "type": "string",
+      "maxLength": 240
+     },
+     "fix": {
+      "type": "string",
+      "maxLength": 400
+     }
+    }
+   }
+  },
+  "jira": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "key",
+     "summary",
+     "status",
+     "category",
+     "updated",
+     "link"
+    ],
+    "properties": {
+     "key": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]+-\\d+$"
+     },
+     "summary": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "type": {
+      "type": "string",
+      "maxLength": 30
+     },
+     "status": {
+      "type": "string",
+      "maxLength": 30
+     },
+     "category": {
+      "enum": [
+       "todo",
+       "progress",
+       "done"
+      ]
+     },
+     "priority": {
+      "type": "string",
+      "maxLength": 20
+     },
+     "role": {
+      "enum": [
+       "assignee",
+       "reporter",
+       "watcher"
+      ]
+     },
+     "updated": {
+      "type": "string",
+      "format": "date-time"
+     },
+     "change": {
+      "type": "string",
+      "maxLength": 140
+     },
+     "link": {
+      "$ref": "#/$defs/link"
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 500
+     }
+    }
+   }
+  },
+  "tasks": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+     "group",
+     "title",
+     "why",
+     "prompt"
+    ],
+    "properties": {
+     "group": {
+      "enum": [
+       "housekeeping",
+       "update",
+       "followup",
+       "decision"
+      ]
+     },
+     "title": {
+      "type": "string",
+      "maxLength": 120
+     },
+     "why": {
+      "type": "string",
+      "maxLength": 400
+     },
+     "needs_ok": {
+      "type": "string",
+      "maxLength": 160
+     },
+     "links": {
+      "type": "array",
+      "items": {
+       "$ref": "#/$defs/link"
+      }
+     },
+     "prompt": {
+      "type": "string",
+      "maxLength": 1200
+     },
+     "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$"
+     }
+    }
+   }
+  },
+  "week": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "summary",
+    "outcomes",
+    "next"
+   ],
+   "properties": {
+    "summary": {
+     "type": "string",
+     "maxLength": 400
+    },
+    "outcomes": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+       "topic",
+       "status",
+       "text",
+       "prs"
+      ],
+      "properties": {
+       "topic": {
+        "type": "string",
+        "maxLength": 40
+       },
+       "status": {
+        "enum": [
+         "done",
+         "moving",
+         "waiting",
+         "blocked"
+        ]
+       },
+       "text": {
+        "type": "string",
+        "maxLength": 200
+       },
+       "prs": {
+        "type": "array",
+        "items": {
+         "type": "integer"
+        }
+       }
+      }
+     }
+    },
+    "next": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "maxLength": 140
+     }
+    }
+   }
+  }
+ },
+ "$defs": {
+  "link": {
+   "type": "string",
+   "maxLength": 300,
+   "pattern": "^https://(github\\.com|claude\\.ai|[a-z0-9-]+\\.atlassian\\.net|[a-z0-9-]+\\.slack\\.com)/[^?#]*$"
+  },
+  "state": {
+   "enum": [
+    "done",
+    "moving",
+    "waiting",
+    "blocked",
+    "todo"
+   ]
+  },
+  "line": {
+   "type": "object",
+   "additionalProperties": false,
+   "required": [
+    "kind",
+    "text"
+   ],
+   "properties": {
+    "kind": {
+     "enum": [
+      "commit",
+      "pr",
+      "review",
+      "session",
+      "artifact",
+      "branch",
+      "file",
+      "jira",
+      "confluence",
+      "slack"
+     ]
+    },
+    "text": {
+     "type": "string",
+     "maxLength": 100
+    },
+    "ref": {
+     "type": "string",
+     "maxLength": 80
+    },
+    "link": {
+     "$ref": "#/$defs/link"
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,11 @@
+[Unit]
+Description=Write the work log run with the week summary on Friday
+
+[Timer]
+# Example time. A late run on Saturday to Tuesday still writes the summary of the week before.
+OnCalendar=Fri 16:00
+Persistent=true
+RandomizedDelaySec=2m
+
+[Install]
+WantedBy=timers.target
